@@ -12,7 +12,7 @@ import {
   TeamProjectReference,
   WebApiTagDefinition,
 } from "azure-devops-extension-api/Core/Core";
-import { ITableColumn, SortOrder } from "azure-devops-ui/Table";
+import { ITableColumn, SortOrder, TableColumnStyle } from "azure-devops-ui/Table";
 import {
   StatusColumn,
   TitleColumn,
@@ -85,12 +85,15 @@ export enum YesOrNo {
 }
 
 export enum AlternateStatusPr {
-  IsDraft = "Is Draft",
-  Conflicts = "Conflicts",
   AutoComplete = "Auto Complete",
-  NotIsDraft = "Not Draft",
+  Conflicts = "Conflicts",
+  HasNewChanges = "Has New Changes",
+  IsDraft = "Is Draft",
+  NotAutoComplete = "Not Auto Complete",
   NotConflicts = "Not Conflicts",
-  NotAutoComplete = "Not Auto Complete"
+  NotIsDraft = "Not Draft",
+  NotReadyForCompletion = "Not Ready for Completion",
+  ReadForCompletion = "Ready for Completion"
 }
 
 export class BranchDropDownItem {
@@ -113,6 +116,8 @@ export const columns: ITableColumn<PullRequestModel>[] = [
     renderCell: StatusColumn,
     readonly: true,
     width: -4,
+    minWidth: -4,
+    columnStyle: TableColumnStyle.Primary
   },
   {
     id: "title",
@@ -126,7 +131,7 @@ export const columns: ITableColumn<PullRequestModel>[] = [
     id: "details",
     name: "Details",
     renderCell: DetailsColumn,
-    width: -15,
+    width: -20,
   },
   {
     id: "time",
@@ -144,31 +149,14 @@ export const columns: ITableColumn<PullRequestModel>[] = [
     id: "reviewers",
     name: "Reviewers",
     renderCell: ReviewersColumn,
-    width: -25,
+    width: -20,
   },
 ];
 
 export class PullRequestPolicy {
-  public id: number = 0;
+  public id: string = "";
   public displayName: string = "";
-  public requiredReviewers?: PullRequestRequiredReviewer[];
-  public minimumApproverCount?: number;
-  public reviewerCount?: number;
-  public creatorVoteCounts?: boolean;
-  public allowDownvotes?: boolean;
-  public resetOnSourcePush?: boolean;
-  public repositoryId?: string;
-  public refName?: string;
-  public allowNoFastForward?: boolean;
-  public allowSquash?: boolean;
-  public allowRebase?: boolean;
-  public allowRebaseMerge?: boolean;
-  public buildDefinitionId?: number;
-  public isCommentOk?: boolean;
-  public isBuildOk?: boolean;
-  public isWorkItemOk?: boolean;
-  public isReviewersApprovedOk?: boolean;
-  public isRequiredReviewerOk?: boolean;
+  public isApproved: boolean = false;
 }
 
 export class PullRequestRequiredReviewer {
@@ -179,6 +167,7 @@ export class PullRequestRequiredReviewer {
 export class PullRequestComment {
   public terminatedComment: number = 0;
   public totalcomment: number = 0;
+  public lastUpdatedDate?: Date;
 }
 
 export interface IStatusIndicatorData {
@@ -232,11 +221,6 @@ export const pullRequestCriteria: GitPullRequestSearchCriteria = {
   status: PullRequestStatus.Active,
   targetRefName: "",
 };
-
-export interface IKeyValueData {
-  id: string;
-  text: string;
-}
 
 export interface IPullRequestsTabState {
   projects: TeamProjectReference[];
